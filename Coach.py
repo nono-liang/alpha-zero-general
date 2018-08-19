@@ -45,16 +45,71 @@ class Coach():
 
         while True:
             episodeStep += 1
+            print('board\n', board)
+            """
+            board
+             [[ 0  0  0  0  0  0]
+             [ 0  0  0  0  0  0]
+             [ 0  0 -1  1  0  0]
+             [ 0  0  1 -1  0  0]
+             [ 0  0  0  0  0  0]
+             [ 0  0  0  0  0  0]]
+            """
+            print('curPlayer', self.curPlayer)
+            """
+            curPlayer 1 / -1 / 1 / ...
+            """
             canonicalBoard = self.game.getCanonicalForm(board,self.curPlayer)
+            print('canonicalBoard\n', canonicalBoard)
+            """
+            canonicalBoard
+             [[ 0  0  0  0  0  0]
+             [ 0  0  0  0  0  0]
+             [ 0  0 -1  1  0  0]
+             [ 0  0  1 -1  0  0]
+             [ 0  0  0  0  0  0]
+             [ 0  0  0  0  0  0]]
+            """
             temp = int(episodeStep < self.args.tempThreshold)
 
             pi = self.mcts.getActionProb(canonicalBoard, temp=temp)
+            print('pi', pi)
+            """
+            pi [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            """
             sym = self.game.getSymmetries(canonicalBoard, pi)
+            # len(sym)=8
             for b,p in sym:
+                print('b\n', b)
+                """
+                b
+                 [[ 0  0  0  0  0  0]
+                 [ 0  0  0  0  0  0]
+                 [ 0  0 -1  1  0  0]
+                 [ 0  0  1 -1  0  0]
+                 [ 0  0  0  0  0  0]
+                 [ 0  0  0  0  0  0]]
+                """
+                # print('p\n', p)
+                """
+                p
+                 [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                """
                 trainExamples.append([b, self.curPlayer, p, None])
 
             action = np.random.choice(len(pi), p=pi)
             board, self.curPlayer = self.game.getNextState(board, self.curPlayer, action)
+            print('new state, board\n', board, '\nplayer', self.curPlayer)
+            """
+            new statte, board
+             [[ 0  0  0  0  0  0]
+             [ 0  0  0  0  0  0]
+             [ 0  0 -1  1  0  0]
+             [ 0  0  1  1  0  0]
+             [ 0  0  0  1  0  0]
+             [ 0  0  0  0  0  0]] 
+            player -1
+            """
 
             r = self.game.getGameEnded(board, self.curPlayer)
 

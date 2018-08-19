@@ -4,12 +4,12 @@ from othello.pytorch.NNet import NNetWrapper as nn
 from utils import *
 
 args = dotdict({
-    'numIters': 1000,
-    'numEps': 100,
+    'numIters': 2,
+    'numEps': 1,
     'tempThreshold': 15,
     'updateThreshold': 0.6,
     'maxlenOfQueue': 200000,
-    'numMCTSSims': 25,
+    'numMCTSSims': 3,
     'arenaCompare': 40,
     'cpuct': 1,
 

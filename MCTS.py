@@ -69,15 +69,54 @@ class MCTS():
 
         if s not in self.Es:
             self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
+            print('Es', self.Es[s])
+            """
+            begin recursive search, next_s
+             [[-1  1  1  1  1  1]
+             [-1 -1 -1 -1  1  1]
+             [-1 -1 -1  1 -1  1]
+             [-1 -1 -1 -1  1 -1]
+             [-1 -1 -1 -1 -1 -1]
+             [-1 -1 -1 -1 -1  1]]
+            Es -1
+            """
         if self.Es[s]!=0:
             # terminal node
+            print('terminal, v', -self.Es[s])
+            """
+            terminal, v 1
+            """
             return -self.Es[s]
 
         if s not in self.Ps:
             # leaf node
             self.Ps[s], v = self.nnet.predict(canonicalBoard)
+            print('leaf, Ps\n', self.Ps[s], '\nv', v)
+            """
+            leaf, Ps
+             [0.02686859 0.02613893 0.02653145 0.02728407 0.02770755 0.02686941
+             0.02598217 0.02750654 0.02616615 0.02631035 0.02812076 0.02694663
+             0.02664369 0.02628738 0.02577865 0.02826667 0.02805581 0.02641091
+             0.02782914 0.02741454 0.0271013  0.0277985  0.02596407 0.02609453
+             0.02803502 0.02790424 0.02751453 0.02790191 0.02647677 0.02724783
+             0.02596787 0.02729226 0.02709833 0.02613078 0.02644561 0.02812006
+             0.02778683] 
+            v [-0.00393087]
+            """
             valids = self.game.getValidMoves(canonicalBoard, 1)
             self.Ps[s] = self.Ps[s]*valids      # masking invalid moves
+            print('leaf, Ps\n', self.Ps[s], '\nv', v)
+            """
+            leaf, Ps
+             [0.         0.         0.         0.         0.         0.
+             0.         0.         0.02616615 0.         0.         0.
+             0.         0.02628738 0.         0.         0.         0.
+             0.         0.         0.         0.         0.02596407 0.
+             0.         0.         0.         0.02790191 0.         0.
+             0.         0.         0.         0.         0.         0.
+             0.        ] 
+            v [-0.00393087]
+            """
             sum_Ps_s = np.sum(self.Ps[s])
             if sum_Ps_s > 0:
                 self.Ps[s] /= sum_Ps_s    # renormalize
@@ -114,15 +153,42 @@ class MCTS():
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
+        print('begin recursive search, next_s\n', next_s)
+        """
+        begin recursive search, next_s
+         [[ 0  0  0  0  0  0]
+         [ 0  0  0  0  0  0]
+         [ 0  0  1 -1  0  0]
+         [ 0  0 -1 -1  0  0]
+         [ 0  0  0 -1  0  0]
+         [ 0  0  0  0  0  0]]
+        """
         v = self.search(next_s)
+        print('end recursive search, next_s\n', next_s, '\nv', v)
+        """
+        end recursive search, next_s
+         [[ 0  0  0  0  0  0]
+         [ 0  0  0  0  0  0]
+         [ 0  0  1 -1  0  0]
+         [ 0  0 -1 -1  0  0]
+         [ 0  0  0 -1  0  0]
+         [ 0  0  0  0  0  0]] 
+        v [0.0039525]
+        """
 
         if (s,a) in self.Qsa:
             self.Qsa[(s,a)] = (self.Nsa[(s,a)]*self.Qsa[(s,a)] + v)/(self.Nsa[(s,a)]+1)
             self.Nsa[(s,a)] += 1
+            print('update Qsa', self.Qsa[(s,a)], '\nNsa', self.Nsa[(s,a)])
 
         else:
             self.Qsa[(s,a)] = v
             self.Nsa[(s,a)] = 1
+            print('init Qsa', self.Qsa[(s, a)], '\nNsa', self.Nsa[(s, a)])
+            """
+            init Qsa [0.0039525] 
+            Nsa 1
+            """
 
         self.Ns[s] += 1
         return -v
